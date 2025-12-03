@@ -1,4 +1,4 @@
-package com.buzzword;
+package com.flowerSSO;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonAlias;
