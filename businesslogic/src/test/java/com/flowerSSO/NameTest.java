@@ -1,4 +1,4 @@
-package com.buzzword;
+package com.flowerSSO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
