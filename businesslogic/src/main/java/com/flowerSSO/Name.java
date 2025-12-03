@@ -1,4 +1,4 @@
-package com.buzzword;
+package com.flowerSSO;
 
 /**
  * This Name class defines a generic name object that 

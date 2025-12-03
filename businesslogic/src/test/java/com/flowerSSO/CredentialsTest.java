@@ -1,4 +1,4 @@
-package com.buzzword;
+package com.flowerSSO;
 
 import org.junit.jupiter.api.Test;
 
