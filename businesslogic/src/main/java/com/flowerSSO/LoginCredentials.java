@@ -2,8 +2,20 @@ package com.flowerSSO;
 
 import org.apache.commons.validator.routines.EmailValidator;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+
+@JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE)
 public class LoginCredentials {
+
+    @JsonProperty("email")
+    @JsonAlias({"email"})
     private String email;
+
+    @JsonProperty("password")
+    @JsonAlias({"password"})
     private String password;
 
     private XssSanitizer mySanitizer;
