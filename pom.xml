@@ -22,7 +22,7 @@
 		<module>database</module>
 	</modules>
 	<name>flowerSSO</name>
-	<description>Buzzword Software Solutions Flower Single-Sign-On (SSO) Server</description>
+	<description>flowerSSO Software Solutions Flower Single-Sign-On (SSO) Server</description>
 	<url/>
 	<licenses>
 		<license/>
