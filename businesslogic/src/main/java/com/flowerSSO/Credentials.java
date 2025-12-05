@@ -35,8 +35,6 @@ public class Credentials extends LoginCredentials {
     @JsonProperty("loc")
     @JsonAlias({"loc"})
     private String location;
-    @JsonIgnore
-    private String systemRole;
 
     private XssSanitizer mySanitizer;
 
@@ -220,30 +218,5 @@ public class Credentials extends LoginCredentials {
             throw new IllegalArgumentException("name must not exceed 64 characters");
         }
         this.location = sanitizedLocation;
-    }
-    
-    /** 
-     * Returns the system role of the user
-     * <p>
-     * @return systemRole
-     */
-    public String getSystemRole() {
-        logger.debug("returning the system role: " + systemRole);
-        return systemRole;
-    }
-
-    /**
-     * Sets the user's system role
-     * <p>
-     * The business rules are:
-     * <ul>
-     *   <li></li>
-     * </ul>
-     */
-    private void setSystemRole() {
-        // TODO: Add logic to compute system role
-        logger.debug("setting the system role");
-
-        // this.systemRole = Map.get(title);
     }
 }
