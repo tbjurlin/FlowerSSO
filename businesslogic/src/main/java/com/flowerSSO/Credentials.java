@@ -15,7 +15,7 @@ import java.util.Map;
  */
 
 @JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE)
-public class Credentials {
+public class Credentials extends LoginCredentials {
     
     @JsonProperty("id")
     @JsonAlias({"id"})
@@ -46,7 +46,8 @@ public class Credentials {
     public Credentials() {
         mySanitizer = new XssSanitizerImpl();
         logger.debug("finishing the default constructor");
-        firstName = new Name();
+        // super();
+        lastName = new Name();
     }
 
     /**
