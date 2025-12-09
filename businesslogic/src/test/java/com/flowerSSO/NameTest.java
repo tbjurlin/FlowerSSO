@@ -41,7 +41,7 @@ public class NameTest {
     @Test
     public void testLongName() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longName = RandomStringUtils.insecure().next(65);
+            String longName = RandomStringUtils.insecure().nextAlphanumeric(65);
             testName.setName(longName);
         });
     }

@@ -48,7 +48,7 @@ public class CredentialsTest {
     @Test
     public void testLongTitle() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longTitle = RandomStringUtils.insecure().next(65);
+            String longTitle = RandomStringUtils.insecure().nextAlphanumeric(65);
             testCredentials.setTitle(longTitle);
         });
     }
@@ -77,7 +77,7 @@ public class CredentialsTest {
     @Test
     public void testLongDepartment() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longDepartment = RandomStringUtils.insecure().next(65);
+            String longDepartment = RandomStringUtils.insecure().nextAlphanumeric(65);
             testCredentials.setDepartment(longDepartment);
         });
     }
@@ -112,7 +112,7 @@ public class CredentialsTest {
     @Test
     public void testLongLocation() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longLocation = RandomStringUtils.insecure().next(65);
+            String longLocation = RandomStringUtils.insecure().nextAlphanumeric(65);
             testCredentials.setLocation(longLocation);
         });
     }
