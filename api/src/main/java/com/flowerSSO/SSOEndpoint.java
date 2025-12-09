@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +41,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
-//import jakarta.validation.Valid;
 
 /**
  * REST API Controller Endpoint for the Flower Single-Sign-On (SSO) Server.
@@ -49,26 +49,44 @@ import jakarta.annotation.PostConstruct;
  * @version 1.0
  */
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
-    @PostMapping("/profile")
-    public ResponseEntity<String> profile() {
+    /**
+     * 
+     * @return
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<String> getProfile() {
         return ResponseEntity.ok("User profile retrieved successfully");
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<String> login() {
-        return ResponseEntity.ok("User signed in successfully");
-    }
-
-    @PostMapping("/signup")
-    public ResponseEntity<String> signup() {
-        return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
-    }
-
-    @PutMapping("/update")
+    /**
+     * 
+     * @return
+     */
+    @PutMapping("/profile")
     public ResponseEntity<String> update() {
         return ResponseEntity.ok("User information updated successfully");
     }
+
+    /**
+     * 
+     * @return
+     */
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody String loginCredentials) {
+        return ResponseEntity.ok("User signed in successfully");
+    }
+
+    /**
+     * 
+     * @return
+     */
+    @PostMapping("/signup")
+    public ResponseEntity<String> signup(@RequestBody String token) {
+        return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
+    }
+    
 }
