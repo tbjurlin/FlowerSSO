@@ -33,7 +33,7 @@ public class LoginCredentialsTest {
     @Test
     public void testLongEmail() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longEmail = RandomStringUtils.insecure().next(65);
+            String longEmail = RandomStringUtils.insecure().nextAlphanumeric(65);
             credentials.setEmail(longEmail);
         });
     }
@@ -73,7 +73,8 @@ public class LoginCredentialsTest {
     @Test
     public void testShortPassword() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String shortPassword = RandomStringUtils.insecure().next(11);
+            String shortPassword = RandomStringUtils.insecure().nextAlphanumeric(11);
+            System.out.println(shortPassword);
             credentials.setPassword(shortPassword);
         });
     }
@@ -81,14 +82,14 @@ public class LoginCredentialsTest {
     @Test
     public void testLongPassword() {
         assertThrows(IllegalArgumentException.class, () -> {
-            String longPassword = RandomStringUtils.insecure().next(65);
+            String longPassword = RandomStringUtils.insecure().nextAlphanumeric(65);
             credentials.setPassword(longPassword);
         });
     }
 
     @Test
     public void testSanitizedPassword() {
-        String randomPassword = RandomStringUtils.insecure().next(24);
+        String randomPassword = RandomStringUtils.insecure().nextAlphanumeric(24);
         String xssInput = "<script>alert('Sanitization Test');</script>" + randomPassword;
         String expected = randomPassword;
 

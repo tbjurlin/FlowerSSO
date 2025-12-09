@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -40,7 +41,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
-//import jakarta.validation.Valid;
+import jakarta.validation.Valid;
 
 /**
  * REST API Controller Endpoint for the Flower Single-Sign-On (SSO) Server.
@@ -49,26 +50,27 @@ import jakarta.annotation.PostConstruct;
  * @version 1.0
  */
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
     @PostMapping("/profile")
-    public ResponseEntity<String> profile() {
+    public ResponseEntity<String> profile(/*@Valid @RequestHeader("Bearer") String tokenStr*/) {
         return ResponseEntity.ok("User profile retrieved successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login() {
+    public ResponseEntity<String> login(@Valid @RequestBody LoginCredentials userLogin) {
         return ResponseEntity.ok("User signed in successfully");
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup() {
+    public ResponseEntity<String> signup(@Valid @RequestBody Credentials userCredentials) {
         return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> update() {
+    public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials userCredentials) {
         return ResponseEntity.ok("User information updated successfully");
     }
 }
