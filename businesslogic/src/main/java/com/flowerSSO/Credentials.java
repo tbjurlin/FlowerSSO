@@ -64,8 +64,8 @@ public class Credentials extends LoginCredentials {
     /* Constructor */
     public Credentials() {
         mySanitizer = new XssSanitizerImpl();
-        logger.debug("finishing the default constructor");
-        // super();
+        super();
+        firstName = new Name();
         lastName = new Name();
     }
 
