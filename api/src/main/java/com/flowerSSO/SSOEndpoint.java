@@ -54,46 +54,58 @@ import jakarta.validation.Valid;
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
-    @GetMapping("/admin/users")
-    public ResponseEntity<String> getAllUsers(@Valid @RequestHeader("Bearer") String tokenStr) {
-        // Verify admin token
-        // Return all user data
-        return ResponseEntity.ok("Admin data retrieved successfully");
+    private String authServerUrl;
+    private final Logger logger = LoggerFactory.getEventLogger();
+
+    @PostConstruct
+    public void init() {
+        authServerUrl = "http://172.16.0.51:8080/auth_service/api/auth/verify";
     }
 
-    @PutMapping("/admin/review/{userId}")
-    public ResponseEntity<String> reviewChanges(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
-        // Verify admin token
-        // Update user data marked for admin review
-        return ResponseEntity.ok("User review data retrieved successfully");
-    }
-
-    @PostMapping("/admin/user/{userId}")
-    public ResponseEntity<String> createUser(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
-        // Verify admin token
-        // Create new user in database
-        return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
-    }
-
-    @DeleteMapping("/admin/user/{userId}")
-    public ResponseEntity<String> deleteUser(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
-        // Verify admin token
-        // Delete user from database
-        return ResponseEntity.ok("User deleted successfully");
+    @GetMapping("verification")
+    public ResponseEntity<String> verifyCredentials(@Valid @RequestHeader("Bearer") String tokenStr) {
+        Token token = new Token();
+        token.setToken(tokenStr);
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials userCredentials = auth.authenticate(token);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body(String.format("{\"firstName\": \"%s\", \"lastName\": \"%s\"}", 
+                                     userCredentials.getFirstName(),
+                                     userCredentials.getLastName()));
     }
 
     @PostMapping("/profile")
     public ResponseEntity<String> profile(@Valid @RequestHeader("Bearer") String tokenStr) {
-        // Retrieve user profile from database using token
-        // Return user profile data
-        return ResponseEntity.ok("User profile retrieved successfully");
+        Token token = new Token();
+        token.setToken(tokenStr);
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials userCredentials = auth.authenticate(token);
+        // Use userCredentials to fetch profile information from db
+        // Send profile information as JSON response
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body(String.format("{\"firstName\": \"%s\", \"lastName\": \"%s\"}", 
+                                     userCredentials.getFirstName(),
+                                     userCredentials.getLastName()));
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginCredentials userLogin) {
-        // Check login credentials against database
-        // If valid, generate token and return success response including token
-        return ResponseEntity.ok("User signed in successfully");
+        Credentials userCredentials = new Credentials();
+        userCredentials.setEmail(userLogin.getEmail());
+        userCredentials.setPassword(userLogin.getPassword());
+        userCredentials.setId(0);
+        userCredentials.setFirstName("John");
+        userCredentials.setLastName("Doe");
+        userCredentials.setDepartment("IT");
+        userCredentials.setTitle("Developer");
+        userCredentials.setLocation("Place");
+        String jwt = Tokenizer.tokenize(userCredentials);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .header("Bearer", jwt)
+                             .body("{\"msg\": \"Login successful.\"}");
     }
 
     @PostMapping("/signup")
@@ -103,9 +115,16 @@ public class SSOEndpoint {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials userCredentials) {
-        // Update user information in database
-        return ResponseEntity.ok("User information updated successfully");
+    public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials newUserCredentials) {
+        Token token = new Token();
+        token.setToken(tokenStr);
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials userCredentials = auth.authenticate(token);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body(String.format("{\"firstName\": \"%s\", \"lastName\": \"%s\"}", 
+                                     userCredentials.getFirstName(),
+                                     userCredentials.getLastName()));
     }
 
     @PutMapping("/forgot-password")
