@@ -54,23 +54,63 @@ import jakarta.validation.Valid;
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
+    @GetMapping("/admin/users")
+    public ResponseEntity<String> getAllUsers(@Valid @RequestHeader("Bearer") String tokenStr) {
+        // Verify admin token
+        // Return all user data
+        return ResponseEntity.ok("Admin data retrieved successfully");
+    }
+
+    @PutMapping("/admin/review/{userId}")
+    public ResponseEntity<String> reviewChanges(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
+        // Verify admin token
+        // Update user data marked for admin review
+        return ResponseEntity.ok("User review data retrieved successfully");
+    }
+
+    @PostMapping("/admin/user/{userId}")
+    public ResponseEntity<String> createUser(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
+        // Verify admin token
+        // Create new user in database
+        return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
+    }
+
+    @DeleteMapping("/admin/user/{userId}")
+    public ResponseEntity<String> deleteUser(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
+        // Verify admin token
+        // Delete user from database
+        return ResponseEntity.ok("User deleted successfully");
+    }
+
     @PostMapping("/profile")
-    public ResponseEntity<String> profile(/*@Valid @RequestHeader("Bearer") String tokenStr*/) {
+    public ResponseEntity<String> profile(@Valid @RequestHeader("Bearer") String tokenStr) {
+        // Retrieve user profile from database using token
+        // Return user profile data
         return ResponseEntity.ok("User profile retrieved successfully");
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginCredentials userLogin) {
+        // Check login credentials against database
+        // If valid, generate token and return success response including token
         return ResponseEntity.ok("User signed in successfully");
     }
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@Valid @RequestBody Credentials userCredentials) {
+        // Create new user in database
         return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
     }
 
     @PutMapping("/update")
     public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials userCredentials) {
+        // Update user information in database
         return ResponseEntity.ok("User information updated successfully");
+    }
+
+    @PutMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody LoginCredentials userLogin) {
+        // Handle forgot password process
+        return ResponseEntity.ok("Password reset successfully");
     }
 }
