@@ -1,0 +1,173 @@
+package com.flowerSSO;
+
+/*
+ * This is free and unencumbered software released into the public domain.
+ * Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software,
+ * either in source code form or as a compiled binary, for any purpose, commercial or
+ * non-commercial, and by any means.
+ *
+ * In jurisdictions that recognize copyright laws, the author or authors of this
+ * software dedicate any and all copyright interest in the software to the public domain.
+ * We make this dedication for the benefit of the public at large and to the detriment of
+ * our heirs and successors. We intend this dedication to be an overt act of relinquishment in
+ * perpetuity of all present and future rights to this software under copyright law.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES
+ * OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ * For more information, please refer to: https://unlicense.org/
+*/
+
+
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.client.MockServerClient;
+import static org.mockserver.integration.ClientAndServer.startClientAndServer;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
+
+public class AuthenticatorTest {
+
+    private Authenticator auth;
+
+    @BeforeEach
+    void setup() {
+        auth = null;
+    }
+
+    @Test
+    void ConstructorTestGood() throws Exception {
+        auth = new AuthenticatorImpl("http://www.validurl.com");
+    }
+
+    @Test
+    void ConstructorTestBadURISyntax() throws Exception {
+
+        AuthenticationException e = assertThrows(AuthenticationException.class, 
+                    () -> auth = new AuthenticatorImpl("{http://www.invaliduri}<script></script>"));
+
+        System.out.println(e.getMessage());
+    }
+
+    @Test
+    void ConstructorTestMalformedURL() throws Exception {
+
+        AuthenticationException e = assertThrows(AuthenticationException.class, 
+                    () -> auth = new AuthenticatorImpl("urn:isbn:0-330-25864-8"));
+
+        System.out.println(e.getMessage());
+    }
+
+    @Nested
+    class AuthenticatorAuthenticateMethodTest {
+
+        private ClientAndServer mockAuthServer;
+        private final String mockAuthServerURL = "http://localhost:1080/auth-service/api/auth/verify";
+        private final String mockAuthServerURLPath = "/auth-service/api/auth/verify";
+        private MockServerClient mockServerClient;
+        private Token testToken;
+        private final String testTokenStr = "eyJhbGciOiJIUzI1NiJ9.eyJsYXN0X25hbWUiOiJHcmVzd2VsbCIsImxvY2F0aW9uIjoiSmFwYW4iLCJpZCI6MzEsImRlcGFydG1lbnQiOiJJbmZvcm1hdGlvbiBUZWNobm9sb2d5IiwidGl0bGUiOiJNYW5hZ2VyIiwiZmlyc3RfbmFtZSI6IlRpbW90aGVlIiwic3ViIjoiVGltb3RoZWUgR3Jlc3dlbGwiLCJpYXQiOjE3NjIyMjQ0OTgsImV4cCI6MTc2MjIyODA5OH0.9uPEIpUtJmrfmCnsFyK3pZXRhSFyIxe5JuHmb4WSyAk";
+        final private String managerCredJSONStr = "{\"fName\": \"John\", \"lName\": \"Smith\", \"loc\": \"US\", \"id\": 10, \"dept\": \"Information Technology\", \"title\": \"Manager\"}";
+    
+        @BeforeEach
+        void setup() {
+            testToken = new Token();
+            testToken.setToken(testTokenStr);
+
+            mockAuthServer = startClientAndServer(1080);
+
+            mockServerClient = new MockServerClient("localhost", 1080);
+        }
+
+        @AfterEach
+        void teardown() {
+            mockAuthServer.stop();
+        }
+
+        @Test
+        void AuthenticateTestGood() throws Exception {
+            mockServerClient.when(request()
+                                    .withMethod("POST")
+                                    .withPath(mockAuthServerURLPath)
+                                    .withBody("{\"token\": \""+ testToken.getToken() +"\"}")
+                                )
+                        .respond(response()
+                                    .withStatusCode(201)
+                                    .withBody(managerCredJSONStr)
+                                );
+            
+            auth = new AuthenticatorImpl(mockAuthServerURL);
+
+            assertNotEquals(auth.authenticate(testToken), null);
+        }
+
+        @Test
+        void AuthenticateTestBadServerResponseCode() throws Exception {
+            mockServerClient.when(request()
+                                    .withMethod("POST")
+                                    .withPath(mockAuthServerURLPath)
+                                    .withBody("{\"token\": \""+ testToken.getToken() +"\"}")
+                                )
+                        .respond(response()
+                                    .withStatusCode(404)
+                                );
+
+            auth = new AuthenticatorImpl(mockAuthServerURL);
+
+            AuthenticationException e = assertThrows(AuthenticationException.class, 
+                      () -> auth.authenticate(testToken));
+
+            System.out.println(e.getMessage());
+        }
+
+        @Test
+        void AuthenticateTestNullToken() throws Exception {
+            mockServerClient.when(request()
+                                    .withMethod("POST")
+                                    .withPath(mockAuthServerURLPath)
+                                    .withBody("{\"token\": \""+ testToken.getToken() +"\"}")
+                                )
+                        .respond(response()
+                                    .withStatusCode(201)
+                                    .withBody(managerCredJSONStr)
+                                );
+
+            auth = new AuthenticatorImpl(mockAuthServerURL);
+
+            AuthenticationException e = assertThrows(AuthenticationException.class, 
+                      () -> auth.authenticate(null));
+
+            System.out.println(e.getMessage());
+        }
+
+        @Test
+        void AuthenticateTestNoServerResponseBody() throws Exception {
+            mockServerClient.when(request()
+                                    .withMethod("POST")
+                                    .withPath(mockAuthServerURLPath)
+                                    .withBody("{\"token\": \""+ testToken.getToken() +"\"}")
+                                )
+                        .respond(response()
+                                    .withStatusCode(201)
+                                );
+
+            auth = new AuthenticatorImpl(mockAuthServerURL);
+
+            AuthenticationException e = assertThrows(AuthenticationException.class, 
+                      () -> auth.authenticate(testToken));
+
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+}
