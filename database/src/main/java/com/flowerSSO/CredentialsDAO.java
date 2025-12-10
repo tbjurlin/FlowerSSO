@@ -16,14 +16,14 @@ public class CredentialsDAO {
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             Statement statement = connection.createStatement();
-            String sql = "INSERT INTO users (email, password, firstName, lastName, title, department, location, userRole)"
+            String sql = "INSERT INTO Credentials (email, password, firstName, lastName, titleId, departmentId, locationId, userRoleId)"
                         + "VALUES ('"
                         + credentials.getEmail() + "', '" + credentials.getPassword() + "', '" 
                         + credentials.getFirstName() + "', '" + credentials.getLastName() + "', "
-                        + "SELECT id FROM Titles WHERE title='" + credentials.getTitle() + "', " 
-                        + "SELECT id FROM Departments WHERE department='" + credentials.getDepartment() + "', "
-                        + "SELECT id FROM Locations WHERE location='" + credentials.getLocation() + "', "
-                        + "SELECT id FROM UserRoles WHERE userRole='" + credentials.getUserRole() + "'"
+                        + "(SELECT id FROM Titles WHERE title='" + credentials.getTitle() + "'), " 
+                        + "(SELECT id FROM Departments WHERE department='" + credentials.getDepartment() + "'), "
+                        + "(SELECT id FROM Locations WHERE location='" + credentials.getLocation() + "'), "
+                        + "(SELECT id FROM UserRoles WHERE userRole='" + credentials.getUserRole() + "')"
                         + ");";
             
             statement.execute(sql);
@@ -40,12 +40,12 @@ public class CredentialsDAO {
             resultSet.next();
 
             credentials = new Credentials();
-            credentials.setId(resultSet.getInt("id"));
+            // credentials.setId(resultSet.getInt("id"));
             credentials.setFirstName(resultSet.getString("firstName"));
             credentials.setLastName(resultSet.getString("lastName"));
-            credentials.setTitle(resultSet.getString("title"));
-            credentials.setDepartment(resultSet.getString("department"));
-            credentials.setLocation(resultSet.getString("location"));
+            // credentials.setTitle(resultSet.getString("title"));
+            // credentials.setDepartment(resultSet.getString("department"));
+            // credentials.setLocation(resultSet.getString("location"));
         }
         catch (Exception e) {
             // TODO: handle exception
