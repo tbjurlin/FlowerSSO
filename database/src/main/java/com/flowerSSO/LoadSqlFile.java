@@ -32,12 +32,13 @@ public class LoadSqlFile {
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {      
             Statement statement = connection.createStatement();
-            statement.execute(query.toString());
+            // statement.execute(query.toString());
             String[] commands = query.toString().split(";");
 
             for (String command : commands) {
                 try {
-                    statement.execute(command);
+                    System.out.println(command);
+                    statement.execute(command + ";");
                 } catch (Exception e) {
                     String message = e.getMessage();
                     if (! message.endsWith("does not exist.")) {

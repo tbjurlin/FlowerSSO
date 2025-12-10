@@ -8,12 +8,9 @@ import java.sql.SQLException;
 
 public class CredentialsDAO {
 
-    Connection db = null;
-
     public CredentialsDAO() {
 
     }
-
 
     public void insertUser(Credentials credentials) throws SQLException {
 
@@ -28,7 +25,6 @@ public class CredentialsDAO {
                         + "SELECT id FROM Locations WHERE location='" + credentials.getLocation() + "', "
                         + "SELECT id FROM UserRoles WHERE userRole='" + credentials.getUserRole() + "'"
                         + ");";
-            
             
             statement.execute(sql);
 

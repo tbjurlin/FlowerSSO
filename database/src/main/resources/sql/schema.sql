@@ -8,24 +8,6 @@ DROP TABLE IF EXISTS UserRoles;
 
 SET FOREIGN_KEY_CHECKS = 1;
 
-CREATE TABLE Credentials (
-    id INT AUTO_INCREMENT,
-    email VARCHAR(64),
-    password VARCHAR(64),
-    firstName VARCHAR(64),
-    lastName VARCHAR(64),
-    titleId INT,
-    departmentId INT,
-    locationId INT,
-    userRoleId INT,
-
-    PRIMARY KEY (id),
-    FOREIGN KEY (titleId) REFERENCES Titles(id),
-    FOREIGN KEY (departmentId) REFERENCES Departments(id),
-    FOREIGN KEY (locationId) REFERENCES Locations(id),
-    FOREIGN KEY (userRoleId) REFERENCES UserRoles(id)
-);
-
 CREATE TABLE Titles (
     id INT AUTO_INCREMENT,
     title VARCHAR(64),
@@ -54,26 +36,43 @@ CREATE TABLE UserRoles (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE Credentials (
+    id INT AUTO_INCREMENT,
+    email VARCHAR(64),
+    password VARCHAR(64),
+    firstName VARCHAR(64),
+    lastName VARCHAR(64),
+    titleId INT,
+    departmentId INT,
+    locationId INT,
+    userRoleId INT,
 
-INSERT INTO Titles (userRole) VALUES (Aide);
-INSERT INTO Titles (userRole) VALUES (Developer);
-INSERT INTO Titles (userRole) VALUES (Sales Agent);
-INSERT INTO Titles (userRole) VALUES (Manager);
+    PRIMARY KEY (id),
+    FOREIGN KEY (titleId) REFERENCES Titles(id),
+    FOREIGN KEY (departmentId) REFERENCES Departments(id),
+    FOREIGN KEY (locationId) REFERENCES Locations(id),
+    FOREIGN KEY (userRoleId) REFERENCES UserRoles(id)
+);
 
-INSERT INTO Departments (department) VALUES (Sales);
-INSERT INTO Departments (department) VALUES (Information Technology);
-INSERT INTO Departments (department) VALUES (Legal);
-INSERT INTO Departments (department) VALUES (Hr);
+INSERT INTO Titles (title) VALUES ("Aide");
+INSERT INTO Titles (title) VALUES ("Developer");
+INSERT INTO Titles (title) VALUES ("Sales Agent");
+INSERT INTO Titles (title) VALUES ("Manager");
 
-INSERT INTO Locations (location) VALUES (United States);
-INSERT INTO Locations (location) VALUES (Japan);
-INSERT INTO Locations (location) VALUES (Brazil);
-INSERT INTO Locations (location) VALUES (Germany);
-INSERT INTO Locations (location) VALUES (South Africa);
+INSERT INTO Departments (department) VALUES ("Sales");
+INSERT INTO Departments (department) VALUES ("Information Technology");
+INSERT INTO Departments (department) VALUES ("Legal");
+INSERT INTO Departments (department) VALUES ("Hr");
 
-INSERT INTO UserRoles (userRole) VALUES (Manager);
-INSERT INTO UserRoles (userRole) VALUES (Contributor);
-INSERT INTO UserRoles (userRole) VALUES (User);
-INSERT INTO UserRoles (userRole) VALUES (Admin);
+INSERT INTO Locations (location) VALUES ("United States");
+INSERT INTO Locations (location) VALUES ("Japan");
+INSERT INTO Locations (location) VALUES ("Brazil");
+INSERT INTO Locations (location) VALUES ("Germany");
+INSERT INTO Locations (location) VALUES ("South Africa");
+
+INSERT INTO UserRoles (userRole) VALUES ("Manager");
+INSERT INTO UserRoles (userRole) VALUES ("Contributor");
+INSERT INTO UserRoles (userRole) VALUES ("User");
+INSERT INTO UserRoles (userRole) VALUES ("Admin");
 
 INSERT INTO Credentials (email, password) VALUES ('admin', 'admin');
