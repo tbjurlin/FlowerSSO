@@ -35,17 +35,18 @@ public class CredentialsDAO {
         Credentials credentials = null;
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             Statement statement = connection.createStatement();
-            String query = "SELECT * FROM Credentials WHERE email=" + email;
+            String query = "SELECT * FROM Credentials WHERE email='" + email + "';";
             ResultSet resultSet = statement.executeQuery(query);
             resultSet.next();
 
             credentials = new Credentials();
-            // credentials.setId(resultSet.getInt("id"));
+            credentials.setId(resultSet.getInt("id"));
             credentials.setFirstName(resultSet.getString("firstName"));
             credentials.setLastName(resultSet.getString("lastName"));
-            // credentials.setTitle(resultSet.getString("title"));
-            // credentials.setDepartment(resultSet.getString("department"));
-            // credentials.setLocation(resultSet.getString("location"));
+            credentials.setTitle(resultSet.getString("title"));
+            credentials.setDepartment(resultSet.getString("department"));
+            credentials.setLocation(resultSet.getString("location"));
+            credentials.setUserRole(resultSet.getString("userRole"));
         }
         catch (Exception e) {
             // TODO: handle exception
