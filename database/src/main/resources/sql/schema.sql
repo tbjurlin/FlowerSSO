@@ -24,14 +24,14 @@ CREATE TABLE Departments (
 
 CREATE TABLE Locations (
     id INT AUTO_INCREMENT,
-    location VARCHAR(64)
+    location VARCHAR(64),
 
     PRIMARY KEY (id)
 );
 
 CREATE TABLE UserRoles (
     id int AUTO_INCREMENT,
-    userRole VARCHAR(64)
+    userRole VARCHAR(64),
 
     PRIMARY KEY (id)
 );

@@ -37,7 +37,7 @@ public class LoadSqlFile {
 
             for (String command : commands) {
                 try {
-                    System.out.println(command);
+                    // System.out.println(command);
                     statement.execute(command + ";");
                 } catch (Exception e) {
                     String message = e.getMessage();
