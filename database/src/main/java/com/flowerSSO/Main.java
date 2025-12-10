@@ -28,7 +28,7 @@ public class Main {
         cred.insertUser(user);
         Credentials userData = cred.getCredentialsByEmail(user.getEmail());
 
-        System.out.println(userData.getLastName());
+        System.out.println(userData.getLocation());
 
 
     
