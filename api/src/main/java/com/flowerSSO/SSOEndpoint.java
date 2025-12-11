@@ -80,25 +80,29 @@ public class SSOEndpoint {
                                      userCredentials.getLastName()));
     }
 
-    @PostMapping("/profile")
+    @GetMapping("/profile")
     public ResponseEntity<String> profile(@Valid @RequestHeader("Bearer") String tokenStr) {
         Token token = new Token();
         token.setToken(tokenStr);
         CredentialsDAO dao = new CredentialsDAO();
         Credentials userCredentials = dao.getCredentialsFromToken(token);
         ObjectMapper mapper = new ObjectMapper();
-        String jsonResponse;
-        try {
-            jsonResponse = mapper.writeValueAsString(userCredentials);
-        } catch (JsonProcessingException e) {
-            logger.error("Error converting user credentials to JSON");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                                 .contentType(MediaType.APPLICATION_JSON)
-                                 .body("{\"msg\": \"Error retrieving user profile.\"}");
+        if(userCredentials == null) {
+            logger.error("Cannot return a null credential.");
+            throw new NullPointerException("Cannot return a null credential.");
         }
-        return ResponseEntity.ok()
-                             .contentType(MediaType.APPLICATION_JSON)
-                             .body(jsonResponse);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String returnObj = objectMapper.writeValueAsString(userCredentials);
+        
+            logger.info("Returning HTTP response code 200.");
+            return ResponseEntity.ok()
+                                 .contentType(MediaType.APPLICATION_JSON)
+                                 .body(returnObj);
+        } catch(JsonProcessingException e) {
+            logger.error("Unable to parse JSON from list of resources.");
+            throw new NullPointerException("Unable to parse JSON from list of resources.");
+        }
     }
 
     @PutMapping("/password")
@@ -119,7 +123,7 @@ public class SSOEndpoint {
         String jwt = Tokenizer.tokenize(userCredentials);
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
-                             .header("Bearer", jwt)
+                             .header("Authorization", jwt)
                              .body("{\"msg\": \"Login successful.\"}");
     }
 
