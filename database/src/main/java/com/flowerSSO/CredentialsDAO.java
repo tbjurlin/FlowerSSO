@@ -16,18 +16,16 @@ public class CredentialsDAO {
 
     }
 
-    public void insertCredentials(Credentials credentials) throws SQLException {
-        //      login cred for admin, cred for user
-
-        // Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        // Credentials userCredentials = auth.authenticate(token);
+    public void insertCredentials(Credentials credentials, Token token) throws SQLException {
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials adminCredentials = auth.authenticate(token);
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             String sql = """
                         INSERT INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId, userRoleId) 
                         VALUES (?, ?, ?, ?, ?, (SELECT id FROM Titles WHERE title=?), (SELECT id FROM Departments WHERE department=?), 
                         (SELECT id FROM Locations WHERE location=?), (SELECT id FROM UserRoles WHERE userRole=?));
-                        """;
+                        WHERE (SELECT isAdmin FROM Credentials WHERE id=?)=True;""";
 
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, credentials.getEmail());
@@ -39,6 +37,7 @@ public class CredentialsDAO {
             statement.setString(7, credentials.getDepartment());
             statement.setString(8, credentials.getLocation());
             statement.setString(9, credentials.getUserRole());
+            statement.setInt(10, adminCredentials.getId());
             
             statement.executeUpdate();
 
@@ -48,18 +47,18 @@ public class CredentialsDAO {
         }
     }
 
-    public void updateCredentials(Credentials credentials) throws SQLException {
+    public void updateCredentials(Credentials credentials, Token token) throws SQLException {
         //      login cred for admin, cred for user
 
-        // Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        // Credentials userCredentials = auth.authenticate(token);
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials adminCredentials = auth.authenticate(token);
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             String sql = """
                         UPDATE INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId, userRoleId) 
                         VALUES (?, ?, ?, ?, ?, (SELECT id FROM Titles WHERE title=?), (SELECT id FROM Departments WHERE department=?), 
-                        (SELECT id FROM Locations WHERE location=?), (SELECT id FROM UserRoles WHERE userRole=?));
-                        """;
+                        (SELECT id FROM Locations WHERE location=?), (SELECT id FROM UserRoles WHERE userRole=?)) 
+                        WHERE (SELECT isAdmin FROM Credentials WHERE id=?)=True;""";
 
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, credentials.getEmail());
@@ -71,6 +70,7 @@ public class CredentialsDAO {
             statement.setString(7, credentials.getDepartment());
             statement.setString(8, credentials.getLocation());
             statement.setString(9, credentials.getUserRole());
+            statement.setInt(10, adminCredentials.getId());
             
             statement.executeUpdate();
 
@@ -80,12 +80,16 @@ public class CredentialsDAO {
         }
     }
 
-    public void updatePassword() {
+    public void updatePassword(String newPassword, Token token) {
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials credentials = auth.authenticate(token);
+        credentials.setPassword(newPassword);
+
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             String sql = "UPDATE INTO Credentials (password) VALUES (?) WHERE id=?;";
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, newPassword);
-            statement.setInt(2, id);
+            statement.setString(1, credentials.getPassword());
+            statement.setInt(2, credentials.getId());
 
             statement.executeUpdate();
         } 
@@ -131,7 +135,11 @@ public class CredentialsDAO {
         return credentials;
     }
 
-    public List<Credentials> getAllCredentials() {
+    public List<Credentials> getAllCredentials(Token token) {
+
+        Authenticator auth = new AuthenticatorImpl(authServerUrl);
+        Credentials adminCredentials = auth.authenticate(token);
+
         List<Credentials> credList = new ArrayList<>();
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
@@ -143,7 +151,8 @@ public class CredentialsDAO {
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                         + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
                         + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
-                        + "INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id ;";
+                        + "INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id "
+                        + "WHERE (SELECT isAdmin FROM Credentials WHERE id=?)=True;";
 
             PreparedStatement statement = connection.prepareStatement(query);
 
@@ -163,6 +172,7 @@ public class CredentialsDAO {
                 credentials.setDepartment(resultSet.getString("department"));
                 credentials.setLocation(resultSet.getString("location"));
                 credentials.setUserRole(resultSet.getString("userRole"));
+                statement.setInt(10, adminCredentials.getId());
 
                 credList.add(credentials);
             }
