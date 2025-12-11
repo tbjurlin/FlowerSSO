@@ -1,5 +1,7 @@
 package com.flowerSSO;
 
+import org.apache.commons.lang3.RandomStringUtils;
+
 /*
  * This is free and unencumbered software released into the public domain.
  * Anyone is free to copy, modify, publish, use, compile, sell, or distribute this software,
@@ -39,18 +41,24 @@ public class LoginCredentials {
     @JsonAlias({"password"})
     private String password;
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String tempPassword;
+
     private XssSanitizer mySanitizer;
+    private PasswordHasher passwordHasher;
 
     private final Logger logger = LoggerFactory.getEventLogger();
 
     public LoginCredentials() {
         mySanitizer = new XssSanitizerImpl();
+        passwordHasher = new PasswordHasherImpl();
         logger.debug("finishing the default constructor");
     }
 
     public LoginCredentials(String email, String password) {
+        this();
         this.email = email;
-        this.password = password;
+        setPassword(password);
     }
 
     public String getEmail() {
@@ -84,6 +92,11 @@ public class LoginCredentials {
         this.email = sanitizedEmail;
     }
 
+    /**
+     * Gets the password in hashed format.
+     * 
+     * @return the hashed password
+     */
     public String getPassword() {
         return password;
     }
@@ -116,6 +129,63 @@ public class LoginCredentials {
             throw new IllegalArgumentException("password must be at least 12 characters");
         }
 
-        this.password = sanitizedPassword;
+        // Store hashed version for persistence
+        this.password = passwordHasher.hash(sanitizedPassword);
+    }
+
+    /**
+     * Gets the temporary password in hashed format.
+     * 
+     * @return the hashed temporary password
+     */
+    public String getTempPassword() {
+        return tempPassword;
+    }
+
+    /**
+     * Sets the temporary password from a provided plaintext value.
+     */
+    public void setTempPassword() {
+        String tempPassword = RandomStringUtils.secure().nextAlphanumeric(16);
+        if (tempPassword == null) {
+            logger.error("Temporary password must not be null.");
+            throw new IllegalArgumentException("Temporary password must not be null.");
+        }
+        
+        String sanitizedTempPassword = mySanitizer.sanitizeInput(tempPassword);
+        
+        if (sanitizedTempPassword.isEmpty()) {
+            logger.error("Temporary password must not be empty.");
+            throw new IllegalArgumentException("Temporary password must not be empty.");
+        }
+        
+        // Store hashed version for persistence
+        this.tempPassword = passwordHasher.hash(sanitizedTempPassword);
+    }
+
+    /**
+     * Verifies if a plaintext password matches the stored hashed password.
+     * 
+     * @param plaintext the plaintext password to verify
+     * @return true if the plaintext matches the stored hash, false otherwise
+     */
+    public boolean verifyPassword(String plaintext) {
+        if (password == null || plaintext == null) {
+            return false;
+        }
+        return passwordHasher.verify(plaintext, password);
+    }
+
+    /**
+     * Verifies if a plaintext temporary password matches the stored hashed temporary password.
+     * 
+     * @param plaintext the plaintext temporary password to verify
+     * @return true if the plaintext matches the stored hash, false otherwise
+     */
+    public boolean verifyTempPassword(String plaintext) {
+        if (tempPassword == null || plaintext == null) {
+            return false;
+        }
+        return passwordHasher.verify(plaintext, tempPassword);
     }
 }

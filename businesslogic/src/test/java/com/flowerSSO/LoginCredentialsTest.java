@@ -1,7 +1,9 @@
 package com.flowerSSO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +62,22 @@ public class LoginCredentialsTest {
     void testValidPassword() {
         String password = "good@password.com";
         credentials.setPassword(password);
-        assertEquals(credentials.getPassword(), password);
+        // Test that hashed password is not the same as plaintext
+        assertNotEquals(password, credentials.getPassword());
+        // Test that verify method works
+        assertTrue(credentials.verifyPassword(password));
+    }
+
+    @Test
+    void testPasswordIsHashed() {
+        String password = "testPassword123";
+        credentials.setPassword(password);
+        // Verify password is hashed and not stored in plaintext
+        assertNotEquals(password, credentials.getPassword());
+        // Verify the hash starts with BCrypt prefix
+        assertTrue(credentials.getPassword().startsWith("$2"));
+        // Verify verification works
+        assertTrue(credentials.verifyPassword(password));
     }
 
     @Test
@@ -95,7 +112,19 @@ public class LoginCredentialsTest {
 
         credentials.setPassword(xssInput);
 
-        assertEquals(expected, credentials.getPassword());
+        // Test that the password is hashed
+        assertNotEquals(expected, credentials.getPassword());
+        // Test that verification works with the sanitized password
+        assertTrue(credentials.verifyPassword(expected));
+    }
+
+    @Test
+    public void testTempPasswordIsHashed() {
+        credentials.setTempPassword();
+        // Verify temp password is hashed (not null)
+        assertTrue(credentials.getTempPassword() != null);
+        // Verify the hash starts with BCrypt prefix
+        assertTrue(credentials.getTempPassword().startsWith("$2"));
     }
 
 }
