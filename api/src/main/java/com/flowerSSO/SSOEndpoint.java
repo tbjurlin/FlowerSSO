@@ -112,13 +112,13 @@ public class SSOEndpoint {
                              .body("{\"msg\": \"Login successful.\"}");
     }
 
-    @PostMapping("/signup")
+    @PostMapping("/admin/add")
     public ResponseEntity<String> signup(@Valid @RequestBody Credentials userCredentials) {
         // Create new user in database
         return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
     }
 
-    @PutMapping("/update")
+    @PutMapping("/admin/update")
     public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials newUserCredentials) {
         Token token = new Token();
         token.setToken(tokenStr);
