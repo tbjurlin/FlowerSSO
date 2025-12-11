@@ -188,4 +188,11 @@ public class LoginCredentials {
         }
         return passwordHasher.verify(plaintext, tempPassword);
     }
+
+    @Override
+    public String toString() {
+        return "LoginCredentials [email=" + email + ", password=" + password + "]";
+    }
+
+    
 }
