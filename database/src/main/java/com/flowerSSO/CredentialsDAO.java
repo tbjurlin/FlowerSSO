@@ -10,15 +10,53 @@ import java.util.List;
 
 public class CredentialsDAO {
 
-    String authServerUrl = "http://172.16.0.51:8080/auth_service/api/auth/verify";
+    private final Authenticator authenticator;
 
+    /**
+     * Primary constructor with dependency injection for Authenticator.
+     * This allows for better testability and configurability by injecting dependencies.
+     * 
+     * @param authenticator The authenticator to use for verifying tokens
+     */
+    public CredentialsDAO(Authenticator authenticator) {
+        if (authenticator == null) {
+            throw new IllegalArgumentException("Authenticator cannot be null");
+        }
+        this.authenticator = authenticator;
+    }
+
+    /**
+     * Convenience constructor that creates an AuthenticatorImpl using ConfigurationManager.
+     * This constructor uses dependency injection for the configuration.
+     * 
+     * @param config The configuration manager to get auth server details
+     */
+    public CredentialsDAO(ConfigurationManager config) {
+        if (config == null) {
+            throw new IllegalArgumentException("ConfigurationManager cannot be null");
+        }
+        try {
+            String authServerUrl = String.format("%s:%d/%s", 
+                                                config.getAuthServerHost(), 
+                                                config.getAuthServerPort(), 
+                                                config.getAuthServerSubdomain());
+            this.authenticator = new AuthenticatorImpl(authServerUrl);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize authenticator", e);
+        }
+    }
+
+    /**
+     * Default constructor that uses ConfigurationManagerImpl singleton.
+     * This is provided for backward compatibility and simple usage.
+     * For better testability, use the constructor that accepts dependencies.
+     */
     public CredentialsDAO() {
-
+        this(ConfigurationManagerImpl.getInstance());
     }
 
     public void insertCredentials(Credentials credentials, Token token) throws SQLException {
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials adminCredentials = auth.authenticate(token);
+        Credentials adminCredentials = authenticator.authenticate(token);
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             String sql = """
@@ -50,8 +88,7 @@ public class CredentialsDAO {
     public void updateCredentials(Credentials credentials, Token token) throws SQLException {
         //      login cred for admin, cred for user
 
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials adminCredentials = auth.authenticate(token);
+        Credentials adminCredentials = authenticator.authenticate(token);
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             String sql = """
@@ -81,8 +118,7 @@ public class CredentialsDAO {
     }
 
     public void updatePassword(String newPassword, Token token) {
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials credentials = auth.authenticate(token);
+        Credentials credentials = authenticator.authenticate(token);
         credentials.setPassword(newPassword);
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
@@ -117,16 +153,17 @@ public class CredentialsDAO {
             statement.setString(1, loginCredentials.getEmail());
             statement.setString(2, loginCredentials.getPassword());
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-
-            credentials = new Credentials();
-            credentials.setId(resultSet.getInt("id"));
-            credentials.setFirstName(resultSet.getString("firstName"));
-            credentials.setLastName(resultSet.getString("lastName"));
-            credentials.setTitle(resultSet.getString("title"));
-            credentials.setDepartment(resultSet.getString("department"));
-            credentials.setLocation(resultSet.getString("location"));
-            credentials.setUserRole(resultSet.getString("userRole"));
+            
+            if (resultSet.next()) {
+                credentials = new Credentials();
+                credentials.setId(resultSet.getInt("id"));
+                credentials.setFirstName(resultSet.getString("firstName"));
+                credentials.setLastName(resultSet.getString("lastName"));
+                credentials.setTitle(resultSet.getString("title"));
+                credentials.setDepartment(resultSet.getString("department"));
+                credentials.setLocation(resultSet.getString("location"));
+                credentials.setUserRole(resultSet.getString("userRole"));
+            }
         }
         catch (SQLException e) {
             e.printStackTrace();
@@ -137,8 +174,7 @@ public class CredentialsDAO {
 
     public List<Credentials> getAllCredentials(Token token) {
 
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials adminCredentials = auth.authenticate(token);
+        Credentials adminCredentials = authenticator.authenticate(token);
 
         List<Credentials> credList = new ArrayList<>();
 
