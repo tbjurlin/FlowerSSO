@@ -8,24 +8,23 @@ public class DatabaseConnectionPool {
 
     private static BasicDataSource dataSource;
 
-    private static final String jdbcUrl = "jdbc:mysql";
-    private static final String dbHost = "localhost";
-    private static final int dbPort = 3306;
-    private static final String dbName = "flowerdb";
-    private static final String username = "root";
-    private static final String password = "root";
-
     static {
+        ConfigurationManager config = ConfigurationManagerImpl.getInstance();
+        
         dataSource = new BasicDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl(jdbcUrl + "://" + dbHost + ":" + dbPort + "/" + dbName);
-        dataSource.setUsername(username);
-        dataSource.setPassword(password);
+        
+        // Construct JDBC URL from configuration
+        String jdbcUrl = config.getDatabaseHost() + ":" + config.getDatabasePort() + "/" + config.getDatabaseName();
+        dataSource.setUrl(jdbcUrl);
+        dataSource.setUsername(config.getDatabaseUsername());
+        dataSource.setPassword(config.getDatabasePassword());
 
-        dataSource.setMinIdle(5);
-        dataSource.setMaxIdle(10);
-        dataSource.setMaxTotal(20);
-        dataSource.setMaxWaitMillis(1000);
+        // Connection pool settings from configuration
+        dataSource.setMinIdle(config.getDatabasePoolMinIdle());
+        dataSource.setMaxIdle(config.getDatabasePoolMaxIdle());
+        dataSource.setMaxTotal(config.getDatabasePoolMaxTotal());
+        dataSource.setMaxWaitMillis(config.getDatabasePoolMaxWaitMillis());
     }
 
     public static Connection getConnection() throws SQLException {

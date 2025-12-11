@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
 
 /**
  * REST API Controller Endpoint for the Flower Single-Sign-On (SSO) Server.
@@ -56,10 +57,14 @@ public class SSOEndpoint {
 
     private String authServerUrl;
     private final Logger logger = LoggerFactory.getEventLogger();
+    private final ConfigurationManager configManager = ConfigurationManagerImpl.getInstance();
 
     @PostConstruct
     public void init() {
-        authServerUrl = "http://172.16.0.51:8080/auth_service/api/auth/verify";
+        authServerUrl = String.format("%s:%d/%s",
+                configManager.getAuthServerHost(),
+                configManager.getAuthServerPort(),
+                configManager.getAuthServerSubdomain());
     }
 
     @GetMapping("verification")
@@ -92,16 +97,15 @@ public class SSOEndpoint {
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginCredentials userLogin) {
-        Credentials userCredentials = new Credentials();
-        userCredentials.setEmail(userLogin.getEmail());
-        userCredentials.setPassword(userLogin.getPassword());
-        userCredentials.setId(0);
-        userCredentials.setFirstName("John");
-        userCredentials.setLastName("Doe");
-        userCredentials.setDepartment("IT");
-        userCredentials.setTitle("Developer");
-        userCredentials.setLocation("Place");
+        logger.info(String.format("Receieved POST request (login) from user: %s", userLogin.getEmail()));
+        CredentialsDAO dao = new CredentialsDAO();
+        System.out.println("DAO created");
+        Credentials userCredentials = dao.getCredentialsFromLogin(userLogin);
+        System.out.println("User credentials retrieved");
+        System.out.println(userLogin.getEmail());
+        System.out.println(userLogin.getPassword());
         String jwt = Tokenizer.tokenize(userCredentials);
+        System.out.println("Token created");
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
                              .header("Bearer", jwt)
@@ -122,14 +126,15 @@ public class SSOEndpoint {
         Credentials userCredentials = auth.authenticate(token);
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
-                             .body(String.format("{\"firstName\": \"%s\", \"lastName\": \"%s\"}", 
-                                     userCredentials.getFirstName(),
-                                     userCredentials.getLastName()));
+                             .body("{\"firstName\": \"%s\", \"lastName\": \"%s\"}");
     }
 
     @PutMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody LoginCredentials userLogin) {
-        // Handle forgot password process
+        String userEmail = userLogin.getEmail();
+        userLogin.setTempPassword();
+        //DAO setTempPasssword(userLogin)
+        EmailService.sendTempPasswordEmail(userEmail, userLogin.getTempPassword());
         return ResponseEntity.ok("Password reset successfully");
     }
 }
