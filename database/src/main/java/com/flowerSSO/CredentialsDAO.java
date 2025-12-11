@@ -75,9 +75,9 @@ public class CredentialsDAO {
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             logger.debug("Database connection obtained for insertCredentials");
             String sql = """
-                        INSERT INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId, userRoleId) 
+                        INSERT INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId) 
                         VALUES (?, ?, ?, ?, ?, (SELECT id FROM Titles WHERE title=?), (SELECT id FROM Departments WHERE department=?), 
-                        (SELECT id FROM Locations WHERE location=?), (SELECT id FROM UserRoles WHERE userRole=?));
+                        (SELECT id FROM Locations WHERE location=?));
                         """;
 
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -89,7 +89,6 @@ public class CredentialsDAO {
             statement.setString(6, credentials.getTitle());
             statement.setString(7, credentials.getDepartment());
             statement.setString(8, credentials.getLocation());
-            statement.setString(9, credentials.getUserRole());
             
             statement.executeUpdate();
             logger.info("Successfully inserted credentials for email: " + credentials.getEmail());
@@ -121,7 +120,6 @@ public class CredentialsDAO {
                         titleId = (SELECT id FROM Titles WHERE title=?), 
                         departmentId = (SELECT id FROM Departments WHERE department=?), 
                         locationId = (SELECT id FROM Locations WHERE location=?), 
-                        userRoleId = (SELECT id FROM UserRoles WHERE userRole=?)
                         WHERE id = ?;
                         ;""";
 
@@ -134,8 +132,7 @@ public class CredentialsDAO {
             statement.setString(6, credentials.getTitle());
             statement.setString(7, credentials.getDepartment());
             statement.setString(8, credentials.getLocation());
-            statement.setString(9, credentials.getUserRole());
-            statement.setInt(10, credentials.getId());
+            statement.setInt(9, credentials.getId());
             
             statement.executeUpdate();
             logger.info("Successfully updated credentials for email: " + credentials.getEmail());
@@ -203,9 +200,7 @@ public class CredentialsDAO {
             logger.debug("Database connection obtained for getCredentialsFromToken");
 
             String query = """
-                    SELECT Credentials.email, Credentials.password, Credentials.isAdmin, 
-                    UserRoles.userRole FROM Credentials 
-                    INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id 
+                    SELECT Credentials.email, Credentials.password, Credentials.isAdmin 
                     WHERE Credentials.id=?;
                     """;
 
@@ -217,7 +212,6 @@ public class CredentialsDAO {
                 credentials.setEmail(resultSet.getString("email"));
                 credentials.setPassword(resultSet.getString("password"));
                 credentials.setIsAdmin(resultSet.getBoolean("isAdmin"));
-                credentials.setUserRole(resultSet.getString("userRole"));
                 logger.info("Successfully retrieved credentials for user ID: " + credentials.getId());
             } else {
                 logger.warn("No credentials found for user ID: " + credentials.getId());
@@ -240,12 +234,11 @@ public class CredentialsDAO {
             logger.debug("Database connection obtained for getCredentialsFromLogin");
             
             String query = "SELECT Credentials.id, Credentials.firstName, Credentials.lastName, "
-                        + "Titles.title, Departments.department, Locations.location, "
-                        + "UserRoles.userRole FROM Credentials "
+                        + "Titles.title, Departments.department, Locations.location "
+                        + "FROM Credentials "
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                         + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
                         + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
-                        + "INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id "
                         + "WHERE email=? AND password=?;";
 
             PreparedStatement statement = connection.prepareStatement(query);
@@ -261,7 +254,6 @@ public class CredentialsDAO {
                 credentials.setTitle(resultSet.getString("title"));
                 credentials.setDepartment(resultSet.getString("department"));
                 credentials.setLocation(resultSet.getString("location"));
-                credentials.setUserRole(resultSet.getString("userRole"));
                 logger.info("Successfully retrieved credentials for email: " + loginCredentials.getEmail());
                 securityLogger.info("Successful login for email: " + loginCredentials.getEmail());
             } else {
@@ -292,12 +284,10 @@ public class CredentialsDAO {
             
             String query = "SELECT Credentials.id, Credentials.email, Credentials.password, "
                         + "Credentials.isAdmin, Credentials.firstName, Credentials.lastName, "
-                        + "Titles.title, Departments.department, Locations.location, "
-                        + "UserRoles.userRole FROM Credentials "
+                        + "Titles.title, Departments.department, Locations.location "
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                         + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
-                        + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
-                        + "INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id ;";
+                        + "INNER JOIN Locations ON Credentials.locationId = Locations.id;";
 
             PreparedStatement statement = connection.prepareStatement(query);
 
@@ -316,7 +306,6 @@ public class CredentialsDAO {
                 credentials.setTitle(resultSet.getString("title"));
                 credentials.setDepartment(resultSet.getString("department"));
                 credentials.setLocation(resultSet.getString("location"));
-                credentials.setUserRole(resultSet.getString("userRole"));
 
                 credList.add(credentials);
             }
@@ -340,7 +329,7 @@ public class CredentialsDAO {
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             logger.debug("Database connection obtained for deleteCredentials");
-            String sql = "DELETE * FROM Credentials WHERE id=?;";
+            String sql = "DELETE FROM Credentials WHERE id=?;";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, id);
             statement.executeUpdate();

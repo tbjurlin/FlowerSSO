@@ -279,7 +279,6 @@ public class CredentialsDAOTest {
             lenient().when(mockResultSet.getString("title")).thenReturn("Developer");
             lenient().when(mockResultSet.getString("department")).thenReturn("IT");
             lenient().when(mockResultSet.getString("location")).thenReturn("USA");
-            lenient().when(mockResultSet.getString("userRole")).thenReturn("Employee");
         }
 
         @Test
@@ -295,7 +294,6 @@ public class CredentialsDAOTest {
             assertEquals("Developer", result.getTitle());
             assertEquals("IT", result.getDepartment());
             assertEquals("USA", result.getLocation());
-            assertEquals("Employee", result.getUserRole());
             
             try {
                 verify(mockPreparedStatement).setString(1, loginCredentials.getEmail());
@@ -378,7 +376,6 @@ public class CredentialsDAOTest {
             lenient().when(mockResultSet.getString("title")).thenReturn("Developer", "Manager", "Analyst");
             lenient().when(mockResultSet.getString("department")).thenReturn("IT", "IT", "Finance");
             lenient().when(mockResultSet.getString("location")).thenReturn("USA", "Canada", "UK");
-            lenient().when(mockResultSet.getString("userRole")).thenReturn("Employee", "Admin", "Employee");
 
             // Act
             var result = credentialsDAO.getAllCredentials(adminToken);
@@ -550,7 +547,6 @@ public class CredentialsDAOTest {
         credentials.setTitle("Developer");
         credentials.setDepartment("IT");
         credentials.setLocation("USA");
-        credentials.setUserRole("Employee");
         return credentials;
     }
 
@@ -565,7 +561,6 @@ public class CredentialsDAOTest {
         credentials.setTitle("Administrator");
         credentials.setDepartment("IT");
         credentials.setLocation("USA");
-        credentials.setUserRole("Admin");
         return credentials;
     }
 
@@ -580,7 +575,6 @@ public class CredentialsDAOTest {
         credentials.setTitle("Developer");
         credentials.setDepartment("IT");
         credentials.setLocation("USA");
-        credentials.setUserRole("Employee");
         return credentials;
     }
 
