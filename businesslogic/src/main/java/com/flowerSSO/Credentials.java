@@ -35,7 +35,7 @@ import java.util.Map;
  * authorization.
  */
 
-@JsonAutoDetect(fieldVisibility = Visibility.ANY, getterVisibility = Visibility.NONE, setterVisibility = Visibility.NONE)
+@JsonAutoDetect(fieldVisibility = Visibility.NONE, getterVisibility = Visibility.PUBLIC_ONLY, setterVisibility = Visibility.PUBLIC_ONLY)
 public class Credentials extends LoginCredentials {
     
     @JsonProperty("id")

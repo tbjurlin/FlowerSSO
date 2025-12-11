@@ -37,11 +37,11 @@ public class LoginCredentials {
     @JsonAlias({"email"})
     private String email;
 
-    @JsonProperty("password")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @JsonAlias({"password"})
     private String password;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String tempPassword;
 
     private XssSanitizer mySanitizer;
