@@ -8,14 +8,17 @@ public class DatabaseConnectionPool {
 
     private static BasicDataSource dataSource;
 
-    private static final String jdbcUrl = "jdbc:mysql://localhost:3306/flowerdb";
+    private static final String jdbcUrl = "jdbc:mysql";
+    private static final String dbHost = "localhost";
+    private static final int dbPort = 3306;
+    private static final String dbName = "flowerdb";
     private static final String username = "root";
     private static final String password = "root";
 
     static {
         dataSource = new BasicDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl(jdbcUrl);
+        dataSource.setUrl(jdbcUrl + "://" + dbHost + ":" + dbPort + "/" + dbName);
         dataSource.setUsername(username);
         dataSource.setPassword(password);
 

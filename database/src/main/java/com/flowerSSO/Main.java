@@ -15,9 +15,11 @@ public class Main {
         LoadSqlFile.sourceSqlFile("database/src/main/resources/sql/schema.sql");
 
         Credentials user = new Credentials();
+        LoginCredentials userLogin = new LoginCredentials();
 
         user.setEmail("user@example.com");
         user.setPassword("pAsSwOrD1234");
+        user.setIsAdmin(true);
         user.setFirstName("John");
         user.setLastName("Johnson");
         user.setTitle("Manager");
@@ -25,8 +27,11 @@ public class Main {
         user.setLocation("Japan");
         user.setUserRole("Manager");
 
-        cred.insertUser(user);
-        Credentials userData = cred.getCredentialsByEmail(user.getEmail());
+        userLogin.setEmail("user@example.com");
+        userLogin.setPassword("pAsSwOrD1234");
+
+        cred.insertCredentials(user);
+        Credentials userData = cred.getCredentials(userLogin);
 
         System.out.println(userData.getLocation());
 

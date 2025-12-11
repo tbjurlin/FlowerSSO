@@ -40,6 +40,7 @@ CREATE TABLE Credentials (
     id INT AUTO_INCREMENT,
     email VARCHAR(64),
     password VARCHAR(64),
+    isAdmin BOOLEAN DEFAULT FALSE,
     firstName VARCHAR(64),
     lastName VARCHAR(64),
     titleId INT,
@@ -48,10 +49,10 @@ CREATE TABLE Credentials (
     userRoleId INT,
 
     PRIMARY KEY (id),
-    FOREIGN KEY (titleId) REFERENCES Titles(id),
-    FOREIGN KEY (departmentId) REFERENCES Departments(id),
-    FOREIGN KEY (locationId) REFERENCES Locations(id),
-    FOREIGN KEY (userRoleId) REFERENCES UserRoles(id)
+    FOREIGN KEY (titleId) REFERENCES Titles(id) ON DELETE CASCADE,
+    FOREIGN KEY (departmentId) REFERENCES Departments(id) ON DELETE CASCADE,
+    FOREIGN KEY (locationId) REFERENCES Locations(id) ON DELETE CASCADE,
+    FOREIGN KEY (userRoleId) REFERENCES UserRoles(id) ON DELETE CASCADE
 );
 
 INSERT INTO Titles (title) VALUES ("Aide");
@@ -73,6 +74,8 @@ INSERT INTO Locations (location) VALUES ("South Africa");
 INSERT INTO UserRoles (userRole) VALUES ("Manager");
 INSERT INTO UserRoles (userRole) VALUES ("Contributor");
 INSERT INTO UserRoles (userRole) VALUES ("User");
-INSERT INTO UserRoles (userRole) VALUES ("Admin");
 
-INSERT INTO Credentials (email, password) VALUES ('admin', 'admin');
+INSERT INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId, userRoleId) 
+VALUES ('admin@flowersso.com', 'password9876', TRUE, "Georgette", "Fleugenheim", 
+(SELECT id FROM Titles WHERE title="Manager"), (SELECT id FROM Departments WHERE department="Hr"), 
+(SELECT id FROM Locations WHERE location="United States"), (SELECT id FROM UserRoles WHERE userRole="Manager"));

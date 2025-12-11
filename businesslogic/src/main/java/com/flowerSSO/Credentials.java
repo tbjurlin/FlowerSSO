@@ -56,7 +56,8 @@ public class Credentials extends LoginCredentials {
     @JsonProperty("loc")
     @JsonAlias({"loc"})
     private String location;
-     private String userRole;
+    private String userRole;
+    private Boolean isAdmin = false;
 
     private XssSanitizer mySanitizer;
 
@@ -258,6 +259,16 @@ public class Credentials extends LoginCredentials {
             throw new IllegalArgumentException("user role must not exceed 64 characters");
         }
         this.userRole = userRole;
+    }
+
+    
+
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 
     @Override
