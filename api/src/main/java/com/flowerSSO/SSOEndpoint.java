@@ -84,56 +84,105 @@ public class SSOEndpoint {
     public ResponseEntity<String> profile(@Valid @RequestHeader("Bearer") String tokenStr) {
         Token token = new Token();
         token.setToken(tokenStr);
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials userCredentials = auth.authenticate(token);
-        // Use userCredentials to fetch profile information from db
-        // Send profile information as JSON response
+        CredentialsDAO dao = new CredentialsDAO();
+        Credentials userCredentials = dao.getCredentialsFromToken(token);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonResponse;
+        try {
+            jsonResponse = mapper.writeValueAsString(userCredentials);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting user credentials to JSON");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .contentType(MediaType.APPLICATION_JSON)
+                                 .body("{\"msg\": \"Error retrieving user profile.\"}");
+        }
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
-                             .body(String.format("{\"firstName\": \"%s\", \"lastName\": \"%s\"}", 
-                                     userCredentials.getFirstName(),
-                                     userCredentials.getLastName()));
+                             .body(jsonResponse);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<String> updatePassword(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody String newPassword) {
+        Token token = new Token();
+        CredentialsDAO dao = new CredentialsDAO();
+        dao.updatePassword(newPassword, token);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body("{\"msg\": \"Password updated successfully!\"}");
     }
 
     @PostMapping("/login")
     public ResponseEntity<String> login(@Valid @RequestBody LoginCredentials userLogin) {
         logger.info(String.format("Receieved POST request (login) from user: %s", userLogin.getEmail()));
         CredentialsDAO dao = new CredentialsDAO();
-        System.out.println("DAO created");
         Credentials userCredentials = dao.getCredentialsFromLogin(userLogin);
-        System.out.println("User credentials retrieved");
-        System.out.println(userLogin.getEmail());
-        System.out.println(userLogin.getPassword());
         String jwt = Tokenizer.tokenize(userCredentials);
-        System.out.println("Token created");
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
                              .header("Bearer", jwt)
                              .body("{\"msg\": \"Login successful.\"}");
     }
 
+    @GetMapping("/admin/users")
+    public ResponseEntity<String> getAllUsers(@Valid @RequestHeader("Bearer") String tokenStr) {
+        Token token = new Token();
+        token.setToken(tokenStr);
+        CredentialsDAO dao = new CredentialsDAO();
+        List<Credentials> allUsers = dao.getAllCredentials(token);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonResponse;
+        try {
+            jsonResponse = mapper.writeValueAsString(allUsers);
+        } catch (JsonProcessingException e) {
+            logger.error("Error converting user list to JSON");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .contentType(MediaType.APPLICATION_JSON)
+                                 .body("{\"msg\": \"Error retrieving users.\"}");
+        }
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body(jsonResponse);
+    }
+
     @PostMapping("/admin/add")
-    public ResponseEntity<String> signup(@Valid @RequestBody Credentials userCredentials) {
-        // Create new user in database
-        return ResponseEntity.status(HttpStatus.CREATED).body("User signed up successfully");
+    public ResponseEntity<String> signup(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials userCredentials) {
+        Token token = new Token();
+        token.setToken(tokenStr);
+        CredentialsDAO dao = new CredentialsDAO();
+        dao.insertCredentials(userCredentials, token);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body("{\"msg\": \"User updated successfully!\"}");
     }
 
     @PutMapping("/admin/update")
     public ResponseEntity<String> update(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody Credentials newUserCredentials) {
         Token token = new Token();
         token.setToken(tokenStr);
-        Authenticator auth = new AuthenticatorImpl(authServerUrl);
-        Credentials userCredentials = auth.authenticate(token);
+        CredentialsDAO dao = new CredentialsDAO();
+        dao.updateCredentials(newUserCredentials, token);
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
-                             .body("{\"firstName\": \"%s\", \"lastName\": \"%s\"}");
+                             .body("{\"msg\": \"User updated successfully!\"}");
+    }
+
+    @DeleteMapping("/admin/delete/{userId}")
+    public ResponseEntity<String> delete(@Valid @RequestHeader("Bearer") String tokenStr, @PathVariable("userId") int userId) {
+        Token token = new Token();
+        token.setToken(tokenStr);
+        CredentialsDAO dao = new CredentialsDAO();
+        dao.deleteCredentials(userId, token);
+        return ResponseEntity.ok()
+                             .contentType(MediaType.APPLICATION_JSON)
+                             .body("{\"msg\": \"User deleted successfully!\"}");
     }
 
     @PutMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody LoginCredentials userLogin) {
         String userEmail = userLogin.getEmail();
         userLogin.setTempPassword();
-        //DAO setTempPasssword(userLogin)
+        CredentialsDAO dao = new CredentialsDAO();
+        dao.updateTempPassword(userLogin.getTempPassword(), userLogin.getEmail());
         EmailService.sendTempPasswordEmail(userEmail, userLogin.getTempPassword());
         return ResponseEntity.ok("Password reset successfully");
     }

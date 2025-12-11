@@ -143,7 +143,7 @@ public class LoginCredentials {
     }
 
     /**
-     * Sets the temporary password from a provided plaintext value.
+     * Sets the temporary password to a random value.
      */
     public void setTempPassword() {
         String tempPassword = RandomStringUtils.secure().nextAlphanumeric(16);
@@ -159,6 +159,42 @@ public class LoginCredentials {
             throw new IllegalArgumentException("Temporary password must not be empty.");
         }
         
+        // Store hashed version for persistence
+        this.tempPassword = passwordHasher.hash(sanitizedTempPassword);
+    }
+
+    /**
+     * Sets the temporary password from a provided plaintext value.
+     * @param tempPassword the plaintext temporary password to set
+     */
+    public void setTempPassword(String tempPassword) {
+
+        logger.debug("setting the temporary password");
+        final int maxLenth = 64;
+        final int minLenth = 12;
+
+        if (tempPassword == null) {
+            logger.error("temporary password must not be null.");
+            throw new IllegalArgumentException("temporary password must not be null.");
+        }
+
+        String sanitizedTempPassword = mySanitizer.sanitizeInput(tempPassword);
+
+        if (sanitizedTempPassword.isEmpty()) {
+            logger.error("temporary password must not be empty.");
+            throw new IllegalArgumentException("temporary password must not be empty.");
+        }
+
+        if (sanitizedTempPassword.length() > maxLenth ) {
+            logger.error("temporary password must not exceed 64 characters");
+            throw new IllegalArgumentException("temporary password must not exceed 64 characters");
+        }
+
+        if (sanitizedTempPassword.length() < minLenth ) {
+            logger.error("temporary password must be at least 12 characters");
+            throw new IllegalArgumentException("temporary password must be at least 12 characters");
+        }
+
         // Store hashed version for persistence
         this.tempPassword = passwordHasher.hash(sanitizedTempPassword);
     }

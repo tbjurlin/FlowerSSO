@@ -112,9 +112,17 @@ public class CredentialsDAO {
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             logger.debug("Database connection obtained for updateCredentials");
             String sql = """
-                        UPDATE Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId, userRoleId) 
-                        VALUES (?, ?, ?, ?, ?, (SELECT id FROM Titles WHERE title=?), (SELECT id FROM Departments WHERE department=?), 
-                        (SELECT id FROM Locations WHERE location=?), (SELECT id FROM UserRoles WHERE userRole=?)) 
+                        UPDATE Credentials SET 
+                        email = ?, 
+                        password = ?, 
+                        isAdmin = ?, 
+                        firstName = ?, 
+                        lastName = ?, 
+                        titleId = (SELECT id FROM Titles WHERE title=?), 
+                        departmentId = (SELECT id FROM Departments WHERE department=?), 
+                        locationId = (SELECT id FROM Locations WHERE location=?), 
+                        userRoleId = (SELECT id FROM UserRoles WHERE userRole=?)
+                        WHERE id = ?;
                         ;""";
 
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -127,6 +135,7 @@ public class CredentialsDAO {
             statement.setString(7, credentials.getDepartment());
             statement.setString(8, credentials.getLocation());
             statement.setString(9, credentials.getUserRole());
+            statement.setInt(10, credentials.getId());
             
             statement.executeUpdate();
             logger.info("Successfully updated credentials for email: " + credentials.getEmail());
@@ -146,7 +155,7 @@ public class CredentialsDAO {
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             logger.debug("Database connection obtained for updatePassword");
-            String sql = "UPDATE Credentials (password) VALUES (?) WHERE id=?;";
+            String sql = "UPDATE Credentials SET password = ? WHERE id=?;";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, credentials.getPassword());
             statement.setInt(2, credentials.getId());
@@ -157,6 +166,30 @@ public class CredentialsDAO {
         } 
         catch (SQLException e) {
             logger.error("SQLException in updatePassword for user ID: " + credentials.getId() + " - " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void updateTempPassword(String newTempPassword, String userEmail) {
+        logger.debug("updateTempPassword called");
+        LoginCredentials login = new LoginCredentials();
+        login.setEmail(userEmail);
+        logger.debug("Temporary password update request for email: " + login.getEmail());
+        login.setTempPassword(newTempPassword);
+
+        try (Connection connection = DatabaseConnectionPool.getConnection()) {
+            logger.debug("Database connection obtained for updatePassword");
+            String sql = "UPDATE Credentials SET tempPassword = ? WHERE email = ?;";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, login.getPassword());
+            statement.setString(2, login.getEmail());
+
+            statement.executeUpdate();
+            logger.info("Successfully updated temporary password for email: " + login.getEmail());
+            securityLogger.info("Temporary password changed for email: " + login.getEmail());
+        } 
+        catch (SQLException e) {
+            logger.error("SQLException in updateTempPassword for email: " + login.getEmail() + " - " + e.getMessage());
             e.printStackTrace();
         }
     }
