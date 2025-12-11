@@ -51,7 +51,7 @@ import jakarta.validation.constraints.Email;
  * @version 1.0
  */
 @RestController
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
@@ -123,7 +123,7 @@ public class SSOEndpoint {
         String jwt = Tokenizer.tokenize(userCredentials);
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
-                             .header("Authorization", jwt)
+                             .header("Bearer", jwt)
                              .body("{\"msg\": \"Login successful.\"}");
     }
 
