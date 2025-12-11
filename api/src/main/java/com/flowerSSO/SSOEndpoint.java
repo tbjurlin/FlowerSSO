@@ -51,7 +51,7 @@ import jakarta.validation.constraints.Email;
  * @version 1.0
  */
 @RestController
-@CrossOrigin(origins = "*", allowedHeaders = "*")
+@CrossOrigin(origins = "*", exposedHeaders = "*")
 @RequestMapping("SSO")
 public class SSOEndpoint {
 
