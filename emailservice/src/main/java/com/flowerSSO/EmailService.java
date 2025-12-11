@@ -42,10 +42,11 @@ public class EmailService {
     final static String sslTrust = "smtp.gmail.com";
     final static XssSanitizer sanitizer = new XssSanitizerImpl();
 
-    public static void sendEmail(String emailString, String subject, String body) {
-        emailString = sanitizer.sanitizeInput(emailString);
+    private static void sendEmail(String recipient, String subject, String body, String contentType) {
+        recipient = sanitizer.sanitizeInput(recipient);
         subject = sanitizer.sanitizeInput(subject);
-        body = sanitizer.sanitizeInput(body);
+        // Note: body is NOT sanitized to preserve HTML formatting for email templates
+        contentType = sanitizer.sanitizeInput(contentType);
 
         // Set up mail server properties
         Properties props = new Properties();
@@ -68,9 +69,9 @@ public class EmailService {
         try {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(username));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(emailString));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipient));
             message.setSubject(subject);
-            message.setText(body);
+            message.setContent(body, contentType);
 
             Transport.send(message);
             System.out.println("Email sent successfully!");
@@ -79,5 +80,25 @@ public class EmailService {
             e.printStackTrace();
             System.err.println("Error sending email: " + e.getMessage());
         }
+    }
+
+    public static void sendTempPasswordEmail(String recipient, String tempPassword) {
+        tempPassword = sanitizer.sanitizeInput(tempPassword);
+        String subject = "IMPORTANT: Your Password Reset Information For FlowerSSO";
+        String body = String.format("Hello!<br><br>"
+                                    +"It looks like you forgot your password, but we've got you covered.<br>"
+                                    +"Your new one-time password is: %s<br><br>"
+                                    +"This will allow you to sign back into your account, but only ONCE.<br>"
+                                    +"*Your original password has NOT been changed.*<br>"
+                                    +"Be sure to make a note of your original password or create a new one after logging in.<br><br>"
+                                    +"Not you? Someone may be trying to gain unauthorized access to your account.<br>"
+                                    +"We recommend logging in to FlowerSSO as soon as possible with your one-time password to deactivate it just in case.<br><br>"
+                                    +"Best regards,<br>FlowerSSO Team<br><br><br>"
+                                    +"Concerned this may be a phishing attempt? We have gone to great lengths to ensure your peace of mind:<br>"
+                                    +"1. Only the real FlowerSSO can create a password that will truly allow you to log back in on the official site.<br>"
+                                    +"2. No phishy links here! Sign in directly at the regular FlowerSSO URL you know and trust.<br>"
+                                    +"3. We will never ask you for your information via email.<br>"
+                                    +"4. Still unsure? Contact your administrator to verify this email's authenticity.<br><br><br>", tempPassword);
+        sendEmail(recipient, subject, body, "text/html; charset=utf-8");
     }
 }
