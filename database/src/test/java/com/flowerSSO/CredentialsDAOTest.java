@@ -399,8 +399,10 @@ public class CredentialsDAOTest {
             // Arrange
             int testId = 42;
 
+            Token adminToken = createTestToken();
+
             // Act
-            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(testId));
+            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(testId, adminToken));
 
             // Assert
             try {
@@ -416,16 +418,18 @@ public class CredentialsDAOTest {
         void deleteCredentials_SQLException() throws SQLException {
             // Arrange
             int testId = 42;
+            Token adminToken = createTestToken();
             when(mockPreparedStatement.executeUpdate()).thenThrow(new SQLException("Delete failed"));
 
             // Act & Assert
-            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(testId));
+            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(testId, adminToken));
         }
 
         @Test
         void deleteCredentials_ZeroId() {
+            Token adminToken = createTestToken();
             // Act
-            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(0));
+            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(0, adminToken));
 
             // Assert
             try {
@@ -437,8 +441,11 @@ public class CredentialsDAOTest {
 
         @Test
         void deleteCredentials_NegativeId() {
+            
+            Token adminToken = createTestToken();
+            
             // Act
-            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(-1));
+            assertDoesNotThrow(() -> credentialsDAO.deleteCredentials(-1, adminToken));
 
             // Assert
             try {
