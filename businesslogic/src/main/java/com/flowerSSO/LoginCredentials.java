@@ -118,4 +118,11 @@ public class LoginCredentials {
 
         this.password = sanitizedPassword;
     }
+
+    @Override
+    public String toString() {
+        return "LoginCredentials [email=" + email + ", password=" + password + "]";
+    }
+
+    
 }

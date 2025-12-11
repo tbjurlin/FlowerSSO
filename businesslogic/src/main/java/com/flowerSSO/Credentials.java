@@ -56,6 +56,8 @@ public class Credentials extends LoginCredentials {
     @JsonProperty("loc")
     @JsonAlias({"loc"})
     private String location;
+    private String userRole;
+    private Boolean isAdmin = false;
 
     private XssSanitizer mySanitizer;
 
@@ -240,4 +242,40 @@ public class Credentials extends LoginCredentials {
         }
         this.location = sanitizedLocation;
     }
+
+
+    public String getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(String userRole) {
+        logger.debug("setting the user role");
+        final int maxLenth = 64;
+
+        String sanitizedUserRole = mySanitizer.sanitizeInput(userRole);
+
+        if (sanitizedUserRole.length() > maxLenth ) {
+            logger.error("user role must not exceed 64 characters");
+            throw new IllegalArgumentException("user role must not exceed 64 characters");
+        }
+        this.userRole = userRole;
+    }
+
+    
+
+    public Boolean getIsAdmin() {
+        return isAdmin;
+    }
+
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
+
+    @Override
+    public String toString() {
+        return "Credentials [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", title=" + title
+                + ", department=" + department + ", location=" + location + ", toString()=" + super.toString() + "]";
+    }
+
+    
 }
