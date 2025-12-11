@@ -80,7 +80,7 @@ public class SSOEndpoint {
                                      userCredentials.getLastName()));
     }
 
-    @PostMapping("/profile")
+    @GetMapping("/profile")
     public ResponseEntity<String> profile(@Valid @RequestHeader("Bearer") String tokenStr) {
         Token token = new Token();
         token.setToken(tokenStr);
