@@ -137,7 +137,37 @@ public class CredentialsDAO {
         }
     }
 
-    public Credentials getCredentials(LoginCredentials loginCredentials) {
+    public Credentials getCredentialsFromToken(Token userToken) {
+        Credentials credentials = authenticator.authenticate(userToken);
+
+        try (Connection connection = DatabaseConnectionPool.getConnection()) {
+
+            String query = """
+                    SELECT Credentials.email, Credentials.password, Credentials.isAdmin, 
+                    UserRoles.userRole FROM Credentials 
+                    INNER JOIN UserRoles ON Credentials.userRoleId = UserRoles.id 
+                    WHERE Credentials.id=?;
+                    """;
+
+            PreparedStatement statement = connection.prepareStatement(query);
+            statement.setInt(1, credentials.getId());
+            ResultSet resultSet = statement.executeQuery();
+            
+            if (resultSet.next()) {
+                credentials.setEmail(resultSet.getString("email"));
+                credentials.setPassword(resultSet.getString("password"));
+                credentials.setIsAdmin(resultSet.getBoolean("isAdmin"));
+                credentials.setUserRole(resultSet.getString("userRole"));
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return credentials;
+    }
+
+    public Credentials getCredentialsFromLogin(LoginCredentials loginCredentials) {
 
         Credentials credentials = null;
 
