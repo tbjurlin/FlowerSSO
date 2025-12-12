@@ -326,6 +326,7 @@ public class CredentialsDAO {
             String query = "SELECT Credentials.id, Credentials.email, Credentials.password, "
                         + "Credentials.isAdmin, Credentials.firstName, Credentials.lastName, "
                         + "Titles.title, Departments.department, Locations.location "
+                        + "FROM Credentials "
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                         + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
                         + "INNER JOIN Locations ON Credentials.locationId = Locations.id;";

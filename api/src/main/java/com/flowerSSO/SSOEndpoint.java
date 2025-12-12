@@ -110,6 +110,7 @@ public class SSOEndpoint {
         Token token = new Token();
         token.setToken(tokenStr);
         CredentialsDAO dao = new CredentialsDAO();
+        logger.error(newPassword);
         dao.updatePassword(newPassword, token);
         return ResponseEntity.ok()
                              .contentType(MediaType.APPLICATION_JSON)
@@ -134,19 +135,19 @@ public class SSOEndpoint {
         token.setToken(tokenStr);
         CredentialsDAO dao = new CredentialsDAO();
         List<Credentials> allUsers = dao.getAllCredentials(token);
-        ObjectMapper mapper = new ObjectMapper();
-        String jsonResponse;
+        
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            jsonResponse = mapper.writeValueAsString(allUsers);
-        } catch (JsonProcessingException e) {
-            logger.error("Error converting user list to JSON");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            String returnObj = objectMapper.writeValueAsString(allUsers);
+        
+            logger.info("Returning HTTP response code 200.");
+            return ResponseEntity.ok()
                                  .contentType(MediaType.APPLICATION_JSON)
-                                 .body("{\"msg\": \"Error retrieving users.\"}");
+                                 .body(returnObj);
+        } catch(JsonProcessingException e) {
+            logger.error("Unable to parse JSON from list of resources.");
+            throw new NullPointerException("Unable to parse JSON from list of resources.");
         }
-        return ResponseEntity.ok()
-                             .contentType(MediaType.APPLICATION_JSON)
-                             .body(jsonResponse);
     }
 
     @PostMapping("/admin/add")
@@ -177,9 +178,16 @@ public class SSOEndpoint {
         token.setToken(tokenStr);
         CredentialsDAO dao = new CredentialsDAO();
         dao.deleteCredentials(userId, token);
-        return ResponseEntity.ok()
-                             .contentType(MediaType.APPLICATION_JSON)
-                             .body("{\"msg\": \"User deleted successfully!\"}");
+        logger.error("User deleted successfully.");
+        try {
+            logger.info("Returning HTTP response code 200.");
+            return ResponseEntity.ok()
+                                 .contentType(MediaType.APPLICATION_JSON)
+                                 .body("{   \"msg\": \"User deleted successfully!\"}");
+        } catch(Exception e) {
+            logger.error("Unable to parse JSON from list of resources.");
+            throw new NullPointerException("Unable to parse JSON from list of resources.");
+        }
     }
 
     @PutMapping("/forgot-password")
