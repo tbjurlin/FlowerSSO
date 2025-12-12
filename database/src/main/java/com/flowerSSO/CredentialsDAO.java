@@ -232,6 +232,8 @@ public class CredentialsDAO {
 
         try (Connection connection = DatabaseConnectionPool.getConnection()) {
             logger.debug("Database connection obtained for getCredentialsFromLogin");
+
+            logger.error(String.format("LoginCredentials: %s", loginCredentials));
             
             String query = "SELECT Credentials.id, Credentials.firstName, Credentials.lastName, "
                         + "Titles.title, Departments.department, Locations.location "
@@ -241,9 +243,16 @@ public class CredentialsDAO {
                         + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
                         + "WHERE email=? AND password=?;";
 
+            PasswordHasher passwordHasher = new PasswordHasherImpl();
+
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, loginCredentials.getEmail());
-            statement.setString(2, loginCredentials.getPassword());
+            try {
+                statement.setString(2, passwordHasher.hash(loginCredentials.getPassword()));
+            } catch (Exception e) {
+                logger.error("Error hashing password: " + e.getMessage());
+                throw new RuntimeException(e);
+            }
             ResultSet resultSet = statement.executeQuery();
             
             if (resultSet.next()) {
