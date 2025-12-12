@@ -266,8 +266,41 @@ public class CredentialsDAO {
                 logger.info("Successfully retrieved credentials for email: " + loginCredentials.getEmail());
                 securityLogger.info("Successful login for email: " + loginCredentials.getEmail());
             } else {
-                logger.warn("Failed to find credentials for email: " + loginCredentials.getEmail());
-                securityLogger.warn("Failed login attempt for email: " + loginCredentials.getEmail());
+                logger.info("Password doesn't match, checking tempPassword");
+
+                query = "SELECT Credentials.id, Credentials.firstName, Credentials.lastName, "
+                    + "Titles.title, Departments.department, Locations.location "
+                    + "FROM Credentials "
+                    + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
+                    + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
+                    + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
+                    + "WHERE email=? AND tempPassword=?;";
+
+                statement = connection.prepareStatement(query);
+                statement.setString(1, loginCredentials.getEmail());
+                statement.setString(2, loginCredentials.getPassword());
+                resultSet = statement.executeQuery();
+
+                if (resultSet.next()) {
+                    credentials = new Credentials();
+                    credentials.setId(resultSet.getInt("id"));
+                    credentials.setFirstName(resultSet.getString("firstName"));
+                    credentials.setLastName(resultSet.getString("lastName"));
+                    credentials.setTitle(resultSet.getString("title"));
+                    credentials.setDepartment(resultSet.getString("department"));
+                    credentials.setLocation(resultSet.getString("location"));
+                    logger.info("Successfully retrieved credentials for email: " + loginCredentials.getEmail());
+                    securityLogger.info("Successful login for email: " + loginCredentials.getEmail());
+
+                    query = "UPDATE Credentials SET tempPassword = NULL WHERE email=?";
+                    statement = connection.prepareStatement(query);
+                    statement.setString(1, loginCredentials.getEmail());
+                    statement.executeUpdate();
+                    logger.info("Set tempPassword to NULL");
+                } else {
+                    logger.warn("Failed to find credentials for email: " + loginCredentials.getEmail());
+                    securityLogger.warn("Failed login attempt for email: " + loginCredentials.getEmail());
+                }
             }
         }
         catch (SQLException e) {
@@ -386,25 +419,5 @@ public class CredentialsDAO {
         }
         
     }
-
-    // X Update all fields
-    //      login cred for admin, cred and id for user
-
-    // X Check user name and password return bool
-
-    // isAdmin and in db return bool
-    
-
-    // X delete user
-    //      login cred for admin, id for user
-
-    // X listall
-
-    // user change password
-
-    //authServerUrl = "http://172.16.0.51:8080/auth_service/api/auth/verify";
-    // Authenticator auth = new AuthenticatorImpl(authServerUrl);
-    //     Credentials userCredentials = auth.authenticate(token);
-
     
 }

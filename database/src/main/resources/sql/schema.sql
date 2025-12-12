@@ -32,6 +32,7 @@ CREATE TABLE Credentials (
     id INT AUTO_INCREMENT,
     email VARCHAR(64),
     password VARCHAR(64),
+    tempPassword VARCHAR(64) DEFAULT NULL,
     isAdmin BOOLEAN DEFAULT FALSE,
     firstName VARCHAR(64),
     lastName VARCHAR(64),
