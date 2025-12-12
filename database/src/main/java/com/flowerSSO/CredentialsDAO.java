@@ -202,7 +202,8 @@ public class CredentialsDAO {
             logger.debug("Database connection obtained for getCredentialsFromToken");
 
             String query = """
-                    SELECT Credentials.email, Credentials.password, Credentials.isAdmin 
+                    SELECT Credentials.email, Credentials.isAdmin 
+                    FROM Credentials
                     WHERE Credentials.id=?;
                     """;
 
@@ -212,7 +213,6 @@ public class CredentialsDAO {
             
             if (resultSet.next()) {
                 credentials.setEmail(resultSet.getString("email"));
-                credentials.setPassword(resultSet.getString("password"));
                 credentials.setIsAdmin(resultSet.getBoolean("isAdmin"));
                 logger.info("Successfully retrieved credentials for user ID: " + credentials.getId());
             } else {
@@ -237,7 +237,7 @@ public class CredentialsDAO {
 
             logger.error(String.format("LoginCredentials: %s", loginCredentials));
             
-            String query = "SELECT Credentials.id, Credentials.password, Credentials.firstName, Credentials.lastName, "
+            String query = "SELECT Credentials.id, Credentials.password, Credentials.isAdmin, Credentials.firstName, Credentials.lastName, "
                         + "Titles.title, Departments.department, Locations.location "
                         + "FROM Credentials "
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
@@ -259,12 +259,14 @@ public class CredentialsDAO {
                 credentials.setTitle(resultSet.getString("title"));
                 credentials.setDepartment(resultSet.getString("department"));
                 credentials.setLocation(resultSet.getString("location"));
+                credentials.setEmail(loginCredentials.getEmail());
+                credentials.setIsAdmin(resultSet.getBoolean("isAdmin"));
                 logger.info("Successfully retrieved credentials for email: " + loginCredentials.getEmail());
                 securityLogger.info("Successful login for email: " + loginCredentials.getEmail());
             } else {
                 logger.info("Password doesn't match, checking tempPassword");
 
-                query = "SELECT Credentials.id, Credentials.tempPassword, Credentials.firstName, Credentials.lastName, "
+                query = "SELECT Credentials.id, Credentials.isAdmin, Credentials.tempPassword, Credentials.firstName, Credentials.lastName, "
                     + "Titles.title, Departments.department, Locations.location "
                     + "FROM Credentials "
                     + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
@@ -274,7 +276,6 @@ public class CredentialsDAO {
 
                 statement = connection.prepareStatement(query);
                 statement.setString(1, loginCredentials.getEmail());
-                statement.setString(2, loginCredentials.getPassword());
                 resultSet = statement.executeQuery();
 
                 if (resultSet.next() && BCrypt.checkpw(loginCredentials.getPassword(), resultSet.getString("tempPassword"))) {
@@ -285,6 +286,8 @@ public class CredentialsDAO {
                     credentials.setTitle(resultSet.getString("title"));
                     credentials.setDepartment(resultSet.getString("department"));
                     credentials.setLocation(resultSet.getString("location"));
+                    credentials.setEmail(loginCredentials.getEmail());
+                    credentials.setIsAdmin(resultSet.getBoolean("isAdmin"));
                     logger.info("Successfully retrieved credentials for email: " + loginCredentials.getEmail());
                     securityLogger.info("Successful login for email: " + loginCredentials.getEmail());
 
