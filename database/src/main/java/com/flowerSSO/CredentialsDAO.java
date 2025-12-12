@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 
 public class CredentialsDAO {
 
@@ -235,22 +237,21 @@ public class CredentialsDAO {
 
             logger.error(String.format("LoginCredentials: %s", loginCredentials));
             
-            String query = "SELECT Credentials.id, Credentials.firstName, Credentials.lastName, "
+            String query = "SELECT Credentials.id, Credentials.password, Credentials.firstName, Credentials.lastName, "
                         + "Titles.title, Departments.department, Locations.location "
                         + "FROM Credentials "
                         + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                         + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
                         + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
-                        + "WHERE email=? AND password=?;";
+                        + "WHERE email=?;";
 
-            PasswordHasher passwordHasher = new PasswordHasherImpl();
 
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, loginCredentials.getEmail());
-            statement.setString(2, passwordHasher.hash(loginCredentials.getPassword()));
+            logger.error(String.format("%s", statement));
             ResultSet resultSet = statement.executeQuery();
             
-            if (resultSet.next()) {
+            if (resultSet.next() && BCrypt.checkpw(loginCredentials.getPassword(), resultSet.getString("password"))) {
                 credentials = new Credentials();
                 credentials.setId(resultSet.getInt("id"));
                 credentials.setFirstName(resultSet.getString("firstName"));
@@ -263,20 +264,20 @@ public class CredentialsDAO {
             } else {
                 logger.info("Password doesn't match, checking tempPassword");
 
-                query = "SELECT Credentials.id, Credentials.firstName, Credentials.lastName, "
+                query = "SELECT Credentials.id, Credentials.tempPassword, Credentials.firstName, Credentials.lastName, "
                     + "Titles.title, Departments.department, Locations.location "
                     + "FROM Credentials "
                     + "INNER JOIN Titles ON Credentials.titleID = Titles.id "
                     + "INNER JOIN Departments ON Credentials.departmentId = Departments.id "
                     + "INNER JOIN Locations ON Credentials.locationId = Locations.id "
-                    + "WHERE email=? AND tempPassword=?;";
+                    + "WHERE email=?;";
 
                 statement = connection.prepareStatement(query);
                 statement.setString(1, loginCredentials.getEmail());
                 statement.setString(2, loginCredentials.getPassword());
                 resultSet = statement.executeQuery();
 
-                if (resultSet.next()) {
+                if (resultSet.next() && BCrypt.checkpw(loginCredentials.getPassword(), resultSet.getString("tempPassword"))) {
                     credentials = new Credentials();
                     credentials.setId(resultSet.getInt("id"));
                     credentials.setFirstName(resultSet.getString("firstName"));

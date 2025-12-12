@@ -108,6 +108,7 @@ public class SSOEndpoint {
     @PutMapping("/password")
     public ResponseEntity<String> updatePassword(@Valid @RequestHeader("Bearer") String tokenStr, @Valid @RequestBody String newPassword) {
         Token token = new Token();
+        token.setToken(tokenStr);
         CredentialsDAO dao = new CredentialsDAO();
         dao.updatePassword(newPassword, token);
         return ResponseEntity.ok()
