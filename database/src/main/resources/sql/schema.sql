@@ -63,6 +63,6 @@ INSERT INTO Locations (location) VALUES ("Germany");
 INSERT INTO Locations (location) VALUES ("South Africa");
 
 INSERT INTO Credentials (email, password, isAdmin, firstName, lastName, titleId, departmentId, locationId) 
-VALUES ('admin@flowersso.com', 'password9876', TRUE, "Georgette", "Fleugenheim", 
+VALUES ('admin@flowersso.com', '$2a$12$9v0Bim88yzyun.nbggc/f.DMg8VNey9xGo6UhnOXypl88V8mxevNa', TRUE, "Georgette", "Fleugenheim", 
 (SELECT id FROM Titles WHERE title="Manager"), (SELECT id FROM Departments WHERE department="Hr"), 
 (SELECT id FROM Locations WHERE location="United States"));

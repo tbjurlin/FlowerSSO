@@ -56,7 +56,7 @@ public class PasswordHasherImpl implements PasswordHasher {
         }
         
         String hashed = BCrypt.hashpw(plaintext, SALT);
-        logger.error("Password hashed successfully" + hashed);
+        logger.error("Password hashed successfully");
         return hashed;
     }
 

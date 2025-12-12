@@ -247,12 +247,7 @@ public class CredentialsDAO {
 
             PreparedStatement statement = connection.prepareStatement(query);
             statement.setString(1, loginCredentials.getEmail());
-            try {
-                statement.setString(2, passwordHasher.hash(loginCredentials.getPassword()));
-            } catch (Exception e) {
-                logger.error("Error hashing password: " + e.getMessage());
-                throw new RuntimeException(e);
-            }
+            statement.setString(2, passwordHasher.hash(loginCredentials.getPassword()));
             ResultSet resultSet = statement.executeQuery();
             
             if (resultSet.next()) {
